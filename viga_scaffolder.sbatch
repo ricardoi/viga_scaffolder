@@ -21,3 +21,24 @@ module load ufrc usearch R
 #@usage: Files needed:  metagenome index and a reference sequence (starting with 1)
 
 #@software: uclust,
+
+#@ reading files:
+ID=$(ls | cut -d '_' -f1 | sed -n ${RUN}p)
+echo "Array" "$RUN" "running file ID:" "$ID" 
+
+#@ vars: 
+a=($ID'_meta-index.fasta') # meta0-index
+b=$2 # RefSeq = Acc.No
+c=$3 # clustering threshold
+
+#@ uclust : input file
+usearch -sortbylength "$a" -fastaout "$ID"_misor.fasta -minseqlength 51 # misor = meta-index sorted
+#usearch -sortbylength "$ID".db -fastaout "$ID"_RefSeq-sor.fasta  -minseqlength 51
+
+#@ clustering
+usearch -usearch_global "$ID"_misor.fasta -db "$b" -id "$c" -userout "$ID".u -strand both -self -userfields query+target+ql+tl+clusternr+raw+bits+id+mid+mism+diffs+qcov+tcov+evalue+tstrand+qstrand+alnout+fastapairs -threads 24
+
+# Title
+echo 'query	target	query_l	target_l	cluster_no	raw_aln	bit_score	id	mean_id	mismatches	differences	query_cov	target_cov	evalue	t_strand	q_strand' > HEADER
+cat HEADER "$ID".u > "$ID"_viga.csv
+
