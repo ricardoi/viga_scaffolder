@@ -32,18 +32,21 @@ date; hostname; pwd
 ## 4-Bowtie2: Align the validated reads versus the filtered contigs, find inconsistencies and outputs alignments (VCF file) in SAM format
 ## 5-SAMtools: SAM-to-BAM conversion
 ## 6-Pilon: Polish draft assembly and outputs an improved FASTA file
-
-module load bowtie2/2.3.3
+module load bowtie2
 module load samtools
 module load pilon
 module load java
+module load samtools
 
 cat ../input/strains.txt | while read x
 do
 
 	#4-Mapping with bowtie2/2.3.3
-	bowtie2-build -f "filtered_contigs/"$x"_contigs_filtered.fasta" $x"_contigs_index"
-	bowtie2 -x $x"_contigs_index" -1 "../input/May17/"$x"_L001_R1_001_val_1.fq.gz" -2 "../input/May17/"$x"_L001_R2_001_val_2.fq.gz" -S $x".sam"
+	cat AO-S001_meta-index.fasta KY565237.fasta > AO-S001-RefSeq.fasta
+	bowtie2-build -f AO-S001-RefSeq.fasta AO-S001_contigs_index
+    bowtie2 -x AO-S001_index -U AO-S001.gz -S AO-S001.sam
+
+#bowtie2 -x $x"_contigs_index" -1 "../input/May17/"$x"_L001_R1_001_val_1.fq.gz" -2 "../input/May17/"$x"_L001_R2_001_val_2.fq.gz" -S $x".sam"
 
 	#5-Formatting
 	
