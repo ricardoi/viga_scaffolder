@@ -43,7 +43,7 @@ do
 
 	#4-Mapping with bowtie2/2.3.3
 	cat AO-S001_meta-index.fasta KY565237.fasta > AO-S001-RefSeq.fasta
-	bowtie2-build -f AO-S001-RefSeq.fasta AO-S001_contigs_index
+	bowtie2-build -f AO-S001.fasta AO-S001_contigs_index
     bowtie2 -x AO-S001_index -U AO-S001.gz -S AO-S001.sam
 
 #bowtie2 -x $x"_contigs_index" -1 "../input/May17/"$x"_L001_R1_001_val_1.fq.gz" -2 "../input/May17/"$x"_L001_R2_001_val_2.fq.gz" -S $x".sam"
@@ -54,10 +54,21 @@ do
 	samtools sort $x".bam" -o $x".sorted.bam"
 	samtools index $x".sorted.bam"
 
+
+# Get consensus fastq file
+samtools mpileup -uf KY565237.fasta AO-S001.sorted.bam | bcftools call -c | vcfutils.pl vcf2fq > AO-S001_cons.fq
+
+samtools mpileup -uf my_reference.fna my_file.bam | bcftools view -cg - | vcfutils.pl vcf2fq > my_consensus.fq
+  # vcfutils.pl is part of bcftools
+
+# Convert .fastq to .fasta and set bases of quality lower than 20 to N
+seqtk seq -aQ64 -q20 -n N SAMPLE_cns.fastq > SAMPLE_cns.fasta
+
+
 	#6-Polishing with pilon
 	
 	export _JAVA_OPTIONS="-Xmx32g"
-	pilon --genome "filtered_contigs/"$x"_contigs_filtered.fasta" --frags $x".sorted.bam" --output "../output/"$x"_contigs" --changes
+	pilon --genome KY565237.fasta --frags $x".sorted.bam" --output "../output/"$x"_contigs" --changes
 	
 done
 
